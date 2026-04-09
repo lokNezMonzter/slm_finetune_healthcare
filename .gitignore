@@ -1,0 +1,46 @@
+# --- System & OS Noise ---
+.DS_Store
+Thumbs.db
+*.swp
+*~
+
+# --- Python & uv ---
+.venv/
+__pycache__/
+*.py[cod]
+*$py.class
+.python-version
+.uv/
+
+# --- Jupyter & Notebooks ---
+.ipynb_checkpoints
+*/.ipynb_checkpoints/*
+# If you use autoreload or temporary scratchpads
+.pytest_cache/
+
+# --- Docker & Logs ---
+*.log
+load_docker_error.log
+load_docker_output.log
+
+# --- Security & Credentials ---
+# Critical: This contains your automated Jupyter password
+set_jupyter_password.exp
+.env
+*.pem
+*.key
+
+# --- Machine Learning Artifacts (The "Heavy" Stuff) ---
+# Don't push model weights or large local datasets to Git
+checkpoints/
+outputs/
+runs/
+*.bin
+*.pt
+*.pth
+*.onnx
+*.safetensors
+# Specific to healthcare: keep local data fragments out
+data/
+*.csv
+*.parquet

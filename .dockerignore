@@ -1,0 +1,30 @@
+# Ignore the environment folder (it's huge and mapped via volume anyway)
+.venv/
+__pycache__/
+*.pyc
+
+# Ignore Git history
+.git/
+.gitignore
+
+# Ignore the script that runs the container (not needed inside the image)
+load_docker.sh
+start.sh
+
+# IDEs
+.vscode/
+.idea/
+.project
+.settings/
+
+# ML Artifacts (Keep the build context tiny)
+checkpoints/
+outputs/
+runs/
+*.bin
+*.pt
+*.pth
+*.safetensors
+*.onnx
+data/
+datasets/
