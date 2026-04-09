@@ -44,3 +44,11 @@ runs/
 data/
 *.csv
 *.parquet
+
+# Build and Log files
+build_log.txt
+*.log
+
+# Docker/System files
+.Dockerfile.swp
+.Dockerfile.swo
