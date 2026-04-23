@@ -1,5 +1,12 @@
 # --- System & OS Noise ---
 .DS_Store
+.AppleDouble
+.LSOverride
+Icon
+._*
+.Spotlight-V100
+.Trashes
+.Trash-0/      
 Thumbs.db
 *.swp
 *~
@@ -52,3 +59,9 @@ build_log.txt
 # Docker/System files
 .Dockerfile.swp
 .Dockerfile.swo
+
+# --- IDEs ---
+.vscode/       
+.idea/
+.project
+.settings/

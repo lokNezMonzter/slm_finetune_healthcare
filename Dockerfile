@@ -47,4 +47,7 @@ RUN chmod +x /set_jupyter_password.exp && ./set_jupyter_password.exp && rm /set_
 
 WORKDIR /workspace
 
+ENV VIRTUAL_ENV=/workspace/.venv
+ENV PATH="$VIRTUAL_ENV/bin:$PATH"
+
 CMD ["jupyter", "notebook", "--ip=0.0.0.0", "--port=8888", "--no-browser", "--certfile=/mycert.pem", "--keyfile=/mykey.key", "--allow-root"]
