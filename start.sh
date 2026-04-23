@@ -21,3 +21,6 @@ sudo docker run -d \
   -v /home/ubuntu/workspace/slm_finetune_healthcare:/workspace \
   -v /home/ubuntu/datasets:/data:ro \
   jupyter_image
+
+# Force the workspace to the develop branch on every start
+sudo docker exec jupyter_lab_env git -C /workspace checkout develop
