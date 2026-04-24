@@ -28,3 +28,8 @@ runs/
 *.onnx
 data/
 datasets/
+
+# --- Fine Tuning ---
+unsloth_compiled_cache/
+wandb/
+unsloth_training_checkpoints/

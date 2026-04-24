@@ -65,3 +65,8 @@ build_log.txt
 .idea/
 .project
 .settings/
+
+# --- Fine Tuning ---
+unsloth_compiled_cache/
+wandb/
+unsloth_training_checkpoints/
