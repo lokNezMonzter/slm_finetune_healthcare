@@ -70,3 +70,5 @@ build_log.txt
 unsloth_compiled_cache/
 wandb/
 unsloth_training_checkpoints/
+trainer_output/
+medquad_checkpoints/
