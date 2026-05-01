@@ -74,7 +74,7 @@ tokenizer = get_chat_template(
     chat_template='qwen3-instruct'
 )
 
-print(f"\033[1;31mrows before cleaning: {len(dataset)}\033[1;31m")
+print(f"rows before cleaning: {len(dataset)}")
 
 def remove_empty_rows(example):
     # Check if the question or answer is none
@@ -89,7 +89,7 @@ def remove_empty_rows(example):
 
 clean_dataset = dataset.filter(remove_empty_rows)
 
-print(f"\033[1;31mrows after cleaning: {len(clean_dataset)}\033[1;31m")
+print(f"rows after cleaning: {len(clean_dataset)}")
 
 # Split the cleaned dataset
 split_dataset = clean_dataset.train_test_split(test_size=0.1, seed=42)
@@ -110,7 +110,7 @@ def format_medquad_prompts(examples):
         texts.append(text)
     return {'text': texts}
 
-print("\033[1;31mapplying ChatML formatting...\033[1;31m")
+print("applying ChatML formatting...")
 
 formatted_dataset = split_dataset.map(format_medquad_prompts, batched=True)
 
@@ -198,6 +198,9 @@ trainer = train_on_responses_only(
 
 import os
 import wandb
+from dotenv import load_dotenv
+
+load_dotenv()
 
 # Initialize wandb to track performance
 wandb.init(
@@ -208,12 +211,12 @@ wandb.init(
 )
 
 # START TRAINING
-print("\033[1;31mstarting training loop...\033[1;31m")
+print("starting training loop...")
 trainer_stats = trainer.train()
 
 # LOCAL SAVE
 local_save_path = "models/qwen-3.5-4b-medquad-lora"
-print(f"\033[1;31msaving locally to path {local_save_path}\033[1;31m")
+print(f"saving locally to path {local_save_path}")
 
 model.save_pretrained(local_save_path)
 tokenizer.save_pretrained(local_save_path)
@@ -223,7 +226,7 @@ hf_token = os.environ.get("HF_API_KEY")
 
 try:
     hf_repo_name = "loknezmonzter/qwen-3.5-4b-medquad-lora"
-    print("\033[1;31mpushing to huggingface repo {hf_repo_name}\033[1;31m")
+    print("pushing to huggingface repo {hf_repo_name}")
 
     # Merge LoRA adapters to base model
     # Creates a single, unified 16-bit precision model (fine tuned)
@@ -234,9 +237,9 @@ try:
         token=hf_token
     )
 
-    print("\033[1;31mcloud sync complete!\033[1;31m")
+    print("cloud sync complete!")
 except Exception as e:
-    print(f"\033[1;31m[ERR]error while pushing: {e}\033[1;31m")
+    print(f"[ERR]error while pushing: {e}")
 
 
 # In[ ]:
