@@ -212,7 +212,9 @@ wandb.init(
 
 # START TRAINING
 print("starting training loop...")
-trainer_stats = trainer.train()
+trainer_stats = trainer.train(
+    resume_from_checkpoint=True
+)
 
 # LOCAL SAVE
 local_save_path = "models/qwen-3.5-4b-medquad-lora"

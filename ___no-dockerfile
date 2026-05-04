@@ -1,0 +1,52 @@
+# Use NVIDIA's CUDA image as a base
+FROM nvidia/cuda:11.8.0-base-ubuntu22.04
+
+# Bake uv into the container
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
+
+# Use uv to install Python directly
+RUN uv python install 3.11
+RUN uv venv --python 3.11 /workspace/.venv
+ 
+# To avoid interaction with timezone etc.
+ARG DEBIAN_FRONTEND=noninteractive
+
+# Install Python 3.11 and system dependencies
+RUN apt-get update && apt-get install -y \
+    software-properties-common \
+    expect \
+    openssl \
+    curl \
+    git \
+    && apt-get install -y libtiff5-dev libjpeg8-dev libopenjp2-7-dev zlib1g-dev \
+    libfreetype6-dev liblcms2-dev libwebp-dev tcl8.6-dev tk8.6-dev \
+    libharfbuzz-dev libfribidi-dev libxcb1-dev
+
+# Tell the container to always use the Python from your uv environment
+ENV PATH="/workspace/.venv/bin:$PATH"
+
+# CRITICAL FIX: Install Jupyter globally using uv so the CMD works
+RUN uv pip install --system jupyter
+
+# Generate Jupyter config
+RUN jupyter notebook --generate-config || true
+
+# Create self-signed certificate
+RUN openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
+    -keyout /mykey.key -out /mycert.pem \
+    -subj "/C=AU/ST=your_state/L=your_city/O=your_organization/OU=your_organizational_unit/CN=your_common_name"
+
+# Add certfile and keyfile configuration
+RUN echo "c.NotebookApp.certfile = u'/mycert.pem'" >> /root/.jupyter/jupyter_notebook_config.py \
+    && echo "c.NotebookApp.keyfile = u'/mykey.key'" >> /root/.jupyter/jupyter_notebook_config.py
+
+# Setup Jupyter Password
+COPY set_jupyter_password.exp /set_jupyter_password.exp
+RUN chmod +x /set_jupyter_password.exp && ./set_jupyter_password.exp && rm /set_jupyter_password.exp
+
+WORKDIR /workspace
+
+ENV VIRTUAL_ENV=/workspace/.venv
+ENV PATH="$VIRTUAL_ENV/bin:$PATH"
+
+CMD ["jupyter", "notebook", "--ip=0.0.0.0", "--port=8888", "--no-browser", "--certfile=/mycert.pem", "--keyfile=/mykey.key", "--allow-root"]
