@@ -53,7 +53,7 @@ data/
 *.parquet
 
 # Build and Log files
-build_log.txt
+build_log*.txt
 *.log
 
 # Docker/System files
@@ -65,3 +65,12 @@ build_log.txt
 .idea/
 .project
 .settings/
+
+# --- Fine Tuning ---
+unsloth_compiled_cache/
+wandb/
+unsloth_training_checkpoints/
+trainer_output/
+medquad_checkpoints/
+models/
+loknezmonzter/
