@@ -15,3 +15,21 @@ To ensure better memory management from PyTorch and prevent memory fragmentation
 ```bash
 export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
 ```
+
+To clear VRAM from NVIDIA GPU in case of zombie processes use the following:
+
+```bash
+sudo fuser -k -9 /dev/nvidia*
+```
+
+_What This Does:_ `fuser` scans the Linux file system for any hidden, zombified, or container-isolated threads that are still hooked into the `/dev/nvidia0` device file and sends a hard kill signal to all of them simultaneously.
+
+To kill a running process (for example a running Python script)
+
+```bash
+# Identify running process
+ps aux | grep python
+
+# Kill with PID
+kill -9 <PID>
+```

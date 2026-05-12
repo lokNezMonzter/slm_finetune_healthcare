@@ -74,3 +74,8 @@ trainer_output/
 medquad_checkpoints/
 models/
 loknezmonzter/
+.cache/
+logs/
+
+# --- Other File Types --- 
+*.jsonl

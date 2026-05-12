@@ -1,53 +1,22 @@
-# Use NVIDIA's CUDA image as a base
-FROM nvidia/cuda:11.8.0-base-ubuntu22.04
+# Use the high-performance PyTorch 2.4 / CUDA 12.4 base (Ubuntu 22.04)
+FROM pytorch/pytorch:2.4.0-cuda12.4-cudnn9-devel
 
-# Bake uv into the container
+# Bake uv into the container for rapid package management
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
 
 # To avoid interaction with timezone etc.
 ARG DEBIAN_FRONTEND=noninteractive
 
-# Install Python 3.11 and system dependencies
+# Install ESSENTIAL system dependencies for medical image processing
+# and standard development tools (OpenSSL, Git, etc.)
 RUN apt-get update && apt-get install -y \
-    software-properties-common \
-    expect \
-    openssl \
-    curl \
-    git \
-    && add-apt-repository ppa:deadsnakes/ppa \
-    && apt-get update && apt-get install -y \
-    python3.11 \
-    python3.11-venv \
-    python3.11-dev \
-    && apt-get install -y libtiff5-dev libjpeg8-dev libopenjp2-7-dev zlib1g-dev \
+    libtiff5-dev libjpeg8-dev libopenjp2-7-dev zlib1g-dev \
     libfreetype6-dev liblcms2-dev libwebp-dev tcl8.6-dev tk8.6-dev \
-    libharfbuzz-dev libfribidi-dev libxcb1-dev
+    libharfbuzz-dev libfribidi-dev libxcb1-dev \
+    expect openssl curl git \
+    && rm -rf /var/lib/apt/lists/*
 
-# Ensure python3 points to 3.11
-RUN update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.11 1
-
-# CRITICAL FIX: Install Jupyter globally using uv so the CMD works
-RUN uv pip install --system jupyter
-
-# Generate Jupyter config
-RUN jupyter notebook --generate-config || true
-
-# Create self-signed certificate
-RUN openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
-    -keyout /mykey.key -out /mycert.pem \
-    -subj "/C=AU/ST=your_state/L=your_city/O=your_organization/OU=your_organizational_unit/CN=your_common_name"
-
-# Add certfile and keyfile configuration
-RUN echo "c.NotebookApp.certfile = u'/mycert.pem'" >> /root/.jupyter/jupyter_notebook_config.py \
-    && echo "c.NotebookApp.keyfile = u'/mykey.key'" >> /root/.jupyter/jupyter_notebook_config.py
-
-# Setup Jupyter Password
-COPY set_jupyter_password.exp /set_jupyter_password.exp
-RUN chmod +x /set_jupyter_password.exp && ./set_jupyter_password.exp && rm /set_jupyter_password.exp
-
+# Set the working directory to the mount point
 WORKDIR /workspace
 
-ENV VIRTUAL_ENV=/workspace/.venv
-ENV PATH="$VIRTUAL_ENV/bin:$PATH"
-
-CMD ["jupyter", "notebook", "--ip=0.0.0.0", "--port=8888", "--no-browser", "--certfile=/mycert.pem", "--keyfile=/mykey.key", "--allow-root"]
+# No CMD is needed; start.sh will invoke 'sleep infinity' to keep it alive as a background worker

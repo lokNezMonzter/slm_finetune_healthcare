@@ -1,23 +1,41 @@
 #!/bin/bash
-# Kills the build script in case of failure
 set -e
 
-# Ensure Docker is running
-sudo systemctl start docker
+# Configuration
+IMAGE_NAME="slm_healthcare_runtime"
+CONTAINER_NAME="slm_workstation"
 
-# Build the image (standard procedure)
-sudo docker build -t jupyter_image .
+# Automatically use the directory where this script is located as the host workspace
+# This makes the script portable across different VMs
+HOST_WS=$(pwd)
 
-# Stop and remove any old version of the container to prevent conflicts
-sudo docker stop jupyter_lab_env || true
-sudo docker rm jupyter_lab_env || true
+echo "Initializing SLM Workspace from: $HOST_WS"
 
-# Run the new container with persistence
+# Build the image only if it doesn't already exist to save time on reboots
+if [[ "$(sudo docker images -q $IMAGE_NAME 2> /dev/null)" == "" ]]; then
+  echo "Building Docker image: $IMAGE_NAME..."
+  sudo docker build -t $IMAGE_NAME .
+else
+  echo "Image $IMAGE_NAME already exists. Skipping build."
+fi
+
+# Stop and remove any old instances of the container
+sudo docker stop $CONTAINER_NAME 2>/dev/null || true
+sudo docker rm $CONTAINER_NAME 2>/dev/null || true
+
+echo "Launching container with 32GB Shared Memory for A6000..."
+
+# Run the container with persistence and heavy shared memory
 sudo docker run -d \
-  --name jupyter_lab_env \
+  --name $CONTAINER_NAME \
   --gpus all \
   --restart=always \
-  -p 8888:8888 \
-  -v /home/ubuntu/workspace/slm_finetune_healthcare:/workspace \
-  -v /home/ubuntu/datasets:/data:ro \
-  jupyter_image
+  --shm-size=32g \
+  -v "$HOST_WS":/workspace \
+  $IMAGE_NAME \
+  sleep infinity
+
+echo "----------------------------------------------------------------"
+echo "✅ Container is active and mapped to $HOST_WS"
+echo "💻 Access your environment via VSCode Remote-SSH -> Attach to Container"
+echo "----------------------------------------------------------------"
