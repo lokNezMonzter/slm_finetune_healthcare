@@ -76,6 +76,8 @@ models/
 loknezmonzter/
 .cache/
 logs/
+outputs/
+checkpoints/
 
 # --- Other File Types --- 
 *.jsonl

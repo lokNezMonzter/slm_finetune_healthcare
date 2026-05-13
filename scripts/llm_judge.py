@@ -11,11 +11,16 @@ from custom_logger import setup_logger
 # ==========================================
 # CONFIGURATION
 # ==========================================
-INPUT_FILE = "/workspace/data/distillation_results_cleaned.jsonl"
-BATCH_INPUT_FILE = "/workspace/data/batch_input.jsonl"
-OUTPUT_FILE = "/workspace/data/llm_judge_results.jsonl"
-MODEL_NAME = "chat-latest"
-ERROR_OUTPUT_FILE = "/workspace/data/llm_judge_errors.jsonl"
+# Only change PART value
+PART = "part1"
+
+INPUT_FILE = f"/workspace/data/distillation_{PART}.jsonl"
+BATCH_INPUT_FILE = f"/workspace/data/batch_payload_{PART}.jsonl"
+OUTPUT_FILE = f"/workspace/data/llm_judge_results_{PART}.jsonl"
+ERROR_OUTPUT_FILE = "/workspace/data/llm_judge_errors_{PART}.jsonl"
+
+MODEL_NAME = "gpt-5.5"
+
 
 # Load env variables and setup logging
 load_dotenv()
@@ -86,6 +91,8 @@ def prepare_batch_file():
                 "body": {
                     "model": MODEL_NAME,
                     "temperature": 0.0,
+                    "max_completion_tokens": 500,
+                    "reasoning": {"effort": "medium"},
                     "response_format": {"type": "json_object"},
                     "messages": [
                         {"role": "system", "content": JUDGE_SYSTEM_PROMPT},

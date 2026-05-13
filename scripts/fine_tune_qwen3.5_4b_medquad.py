@@ -1,18 +1,3 @@
-#!/usr/bin/env python
-# coding: utf-8
-
-# # Project Description
-# This is under construction and will be updated soon
-
-# ## Initial Setup
-# 
-# - Load `Qwen3.5-4B` from **unsloth** and initialize the weights
-# - Configure the **LoRA** adapters for the model
-# - Load and explore the dataset `lavita/MedQuad` from **HuggingFace**
-
-# In[ ]:
-
-
 from unsloth import FastVisionModel
 
 # Initialize model weights and tokenizer
@@ -41,31 +26,11 @@ model = FastVisionModel.get_peft_model(
 )
 
 
-# In[ ]:
-
-
 from datasets import load_dataset
 
 dataset = load_dataset('lavita/MedQuAD')
 dataset = dataset['train']
 dataset,dataset[0]
-
-
-# ## Dataset Processing - Prepare For Fine Tuning
-# 
-# #### Prompt Formatting
-# Build the data dictionary so that every fine tuning prompt passed to LLM is in the format expected by it (**ChatML**). The chat template is applied to the tokenizer so that the tokenizer object is permenantly modified. This allows the tokenizer to know how to use Qwen specific tags `<|im_start|>` and `<|im_end|>`
-# 
-# The ChatML template must be bound to the tokenizer first before mapping the dataset.
-# 
-# #### Train On Responses Only
-# This is a technique that ensures **Completion-Only Training** for the benchmarking protocol. It ensures the model's loss function only optimizes for generating the medical answer rather than wasting computational power learning how to memorize the user's questions
-# 
-# #### Dataset Split
-# The dataset needs to be split into 90-10 ratio where 90% is split for training and the remaining 10% for testing. The data processing steps need to be applied to both the train and test splits. If the processing is only applied on the train split, the `SFTTrainer` will be looking for specific ChatML tags in the test set when calculating the **validation loss** and since the tags are not present, incorrect validation loss will be reported 
-
-# In[ ]:
-
 
 from unsloth.chat_templates import get_chat_template
 # Bind the template to tokenizer
@@ -113,23 +78,10 @@ def format_medquad_prompts(examples):
 print("applying ChatML formatting...")
 
 formatted_dataset = split_dataset.map(format_medquad_prompts, batched=True)
-
-
-# In[ ]:
-
-
 formatted_dataset, formatted_dataset['train'], formatted_dataset['test']
 
 
-# In[ ]:
-
-
 formatted_dataset['train'][0], formatted_dataset['test'][0]
-
-
-# ## Fine Tuning Configuration
-
-# In[ ]:
 
 
 from trl import SFTTrainer, SFTConfig
@@ -193,9 +145,6 @@ trainer = train_on_responses_only(
 )
 
 
-# In[ ]:
-
-
 import os
 import wandb
 from dotenv import load_dotenv
@@ -242,10 +191,3 @@ try:
     print("cloud sync complete!")
 except Exception as e:
     print(f"[ERR]error while pushing: {e}")
-
-
-# In[ ]:
-
-
-
-
