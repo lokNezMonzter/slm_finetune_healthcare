@@ -172,10 +172,26 @@ wandb.init(
     config=trainer.args
 )
 print("\n✅ WANDB initialized")
-
 print("\n💡 getting ready to fine tune...\n")
+
+# Define the exact path from your SFTConfig
+output_dir = "/workspace/checkpoints/llama_checkpoints"
+
+# Probe the disk for existing checkpoints
+has_checkpoints = False
+if os.path.exists(output_dir):
+    # Look for any folder that starts with "checkpoint-"
+    checkpoints = [d for d in os.listdir(output_dir) if d.startswith("checkpoint-")]
+    if len(checkpoints) > 0:
+        has_checkpoints = True
+
 try:
-    trainer_stats = trainer.train(resume_from_checkpoint=True)
+    if has_checkpoints:
+        print(f"📦 Found existing checkpoint in {output_dir}. Resuming training...")
+        trainer_stats = trainer.train(resume_from_checkpoint=True)
+    else:
+        print("🚀 No checkpoints found. Starting fresh 2.5k training run...")
+        trainer_stats = trainer.train()
 except Exception as e:
     print(f"⚠️ CRITICAL CRASH: {e}")
 else:

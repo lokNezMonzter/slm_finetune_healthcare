@@ -16,6 +16,11 @@ To ensure better memory management from PyTorch and prevent memory fragmentation
 export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
 ```
 
+Without this, Python will "buffer" your training logs. You might see a blank log file for 30 minutes, then suddenly 5,000 lines appear at once. This forces real-time writes
+```bash
+export PYTHONUNBUFFERED=1
+```
+
 To clear VRAM from NVIDIA GPU in case of zombie processes use the following:
 
 ```bash
