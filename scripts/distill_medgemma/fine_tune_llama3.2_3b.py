@@ -1,4 +1,5 @@
 import os
+import json
 import torch
 import wandb
 import numpy as np
@@ -60,26 +61,31 @@ model = FastLanguageModel.get_peft_model(
 # Load llama-3 chat template
 tokenizer = get_chat_template(tokenizer, chat_template="llama-3")
 
+
 def format_prompts(examples):
     instructions = examples["raw_medical_text"]
     outputs = examples["data"]
     texts = []
 
+    # Load the JSON schema as a formatted json string
+    schema_string = json.dumps(JSON_SCHEMA, indent=4)
+
     for instruction, output in zip(instructions, outputs):
         messages = [
             {
                 "role": "system",
-                "content": """You are an expert clinical informatician. Extract data strictly into this JSON schema:\n
+                "content": f"""
+                You are an expert clinical informatician. Extract data strictly into this JSON schema:\n
                 
-                {JSON_SCHEMA}
+                {schema_string}
 
                 --------------------------
                 CRITICAL FORMATTING RULES
                 --------------------------
                 1. Use ONLY double quotes (") for all JSON keys and string values.
                 2. If clinical terms contain apostrophes (e.g., patient's, Alzheimer's), leave them as raw characters inside the double-quoted strings.
-                3. Your entire response MUST start strictly with the '{' character and end strictly with the '}' character.
-                4. Output raw JSON only. No explanations, no markdown formatting, no code blocks."""
+                3. Your entire response MUST start strictly with the '{{' character and end strictly with the '}}' character.
+                4. Output raw JSON only. No explanations, no markdown formatting, no code blocks.\n\n"""
             },
             {
                 "role": "user",
