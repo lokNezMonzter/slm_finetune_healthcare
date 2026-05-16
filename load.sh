@@ -36,6 +36,7 @@ sudo docker run -d \
   -v /mnt/huggingface/data/:/mnt/huggingface/data \
   -v /mnt/models:/mnt/models \
   -v /mnt/data:/mnt/data \
+  -v ~/.ssh:/root/.ssh:ro \
   -e HF_HOME=/mnt/huggingface/models \
   -e HF_DATASETS_CACHE=/mnt/huggingface/data \
   $IMAGE_NAME \

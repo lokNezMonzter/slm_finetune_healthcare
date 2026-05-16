@@ -11,9 +11,11 @@ from unsloth.chat_templates import get_chat_template, train_on_responses_only
 
 load_dotenv()
 
+BASE_PATH = "/mnt/huggingface/data/medgemma_extracts"
+
 # Load and slice the train set
-train_set = load_from_disk("/mnt/datasets/medgemma_extracts/train").select(range(2500))
-test_set = load_from_disk("/mnt/datasets/medgemma_extracts/test")
+train_set = load_from_disk(f"{BASE_PATH}/train").select(range(2500))
+test_set = load_from_disk(f"{BASE_PATH}/test")
 
 print("\n📥 successfully loaded train and test sets from disk")
 print(f"#️⃣ records in train_set: {len(train_set)}")
