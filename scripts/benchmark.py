@@ -11,7 +11,7 @@ from unsloth import FastVisionModel
 from unsloth.chat_templates import get_chat_template
 from transformers import AutoModelForCausalLM, AutoTokenizer, BitsAndBytesConfig
 
-from utils import printf
+from scripts.utils2.colors import printf
 
 load_dotenv()
 
