@@ -3,10 +3,8 @@ import json
 import asyncio
 import time
 import random
-import functools
 from datetime import timedelta
 from openai import AsyncOpenAI
-from datasets import load_dataset
 from dotenv import load_dotenv
 from huggingface_hub import hf_hub_download
 from tenacity import (
