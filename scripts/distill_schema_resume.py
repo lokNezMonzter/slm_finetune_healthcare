@@ -9,7 +9,7 @@ from datasets import load_dataset
 from dotenv import load_dotenv
 from huggingface_hub import hf_hub_download
 
-from utils import printf
+from scripts.utils.colors import printf
 
 load_dotenv()
 
