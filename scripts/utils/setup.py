@@ -13,11 +13,11 @@ def run_setup(new, model):
                 capture_output=True,
                 text=True
             )
-            # result = subprocess.run(
-            #     ["bash", "-c", f"rm -rf /workspace/logs/*.log"],
-            #     capture_output=True,
-            #     text=True
-            # )
+            result = subprocess.run(
+                ["bash", "-c", f"rm -rf /workspace/logs/*.log"],
+                capture_output=True,
+                text=True
+            )
             result = subprocess.run(
                 ["bash", "-c", f"rm -rf /workspace/.cache/"],
                 capture_output=True,

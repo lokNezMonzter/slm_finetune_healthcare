@@ -21,7 +21,7 @@ if MODE == "LOCAL":
     API_KEY = "vllm-local"
     BASE_URL = "http://172.17.0.1:8000/v1"
     MODEL_NAME = "kosbu/Llama-3.3-70B-Instruct-AWQ" # Adjust to match your exact vLLM launch string
-    CONCURRENCY_LIMIT = 4 # Hard limit to prevent A6000 OOM with 16-bit KV Cache
+    CONCURRENCY_LIMIT = 6 # Hard limit to prevent A6000 OOM with 16-bit KV Cache
 else:
     # 2. DeepSeek API Settings
     API_KEY = os.getenv("DEEPSEEK_API_KEY")
@@ -34,7 +34,7 @@ client = AsyncOpenAI(api_key=API_KEY, base_url=BASE_URL, timeout=1800.0)
 # ==========================================
 # FILE PATHS
 # ==========================================
-INPUT_FILE = f"/workspace/data/distillation_results_cleaned_deduped.jsonl"
+INPUT_FILE = f"/workspace/data/distilled/pmc_patients/pmc_patients_distilled.jsonl"
 OUTPUT_FILE = f"/workspace/outputs/llm_judge_results.jsonl"
 ERROR_OUTPUT_FILE = f"/workspace/outputs/llm_judge_errors.jsonl"
 
