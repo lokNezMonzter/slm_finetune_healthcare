@@ -1,7 +1,7 @@
 import json
 from dotenv import load_dotenv
 from huggingface_hub import hf_hub_download
-from datasets import load_dataset, load_from_disk
+from datasets import load_dataset
 
 IN_PATH = "data/distilled/pmc_patients"
 OUT_PATH = "/mnt/huggingface/data/distilled/pmc_patients"

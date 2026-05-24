@@ -1,13 +1,13 @@
 import os
-import sys
 import json
 import torch
 import wandb
 import argparse
+import subprocess
 from dotenv import load_dotenv
 from datasets import load_from_disk
 from trl import SFTTrainer, SFTConfig
-from transformers import AutoModelForCausalLM, AutoTokenizer, BitsAndBytesConfig
+from transformers import AutoModelForCausalLM, AutoTokenizer, BitsAndBytesConfig, Phi3ForCausalLM
 from transformers.trainer_utils import get_last_checkpoint
 from peft import (
     LoraConfig, 
@@ -20,13 +20,27 @@ from peft import (
 import sys
 sys.path.insert(0, "/workspace")
 
+def check_gpu_free(min_gb=20):
+    result = subprocess.run(
+        ["nvidia-smi", "--query-gpu=memory.free", "--format=csv,noheader,nounits"],
+        capture_output=True, text=True
+    )
+    free_gb = int(result.stdout.strip()) / 1024
+    if free_gb < min_gb:
+        print(f"❌ Only {free_gb:.1f} GB free on GPU. Need {min_gb} GB. Exiting.")
+        print("Run: nvidia-smi  to see what's using the GPU.")
+        sys.exit(1)
+    print(f"✅ GPU has {free_gb:.1f} GB free")
+
+check_gpu_free(min_gb=40)
+
 
 # Important constants
 MODEL_NAME = "microsoft/Phi-4-mini-instruct"
-HF_REPO_NAME = "loknezmonzter/phi-4-mini-instruct-ft-medgemma-extracts"
-DATASET_PATH = "/mnt/huggingface/data/medgemma_extracts"
-BASE_DIR = "/mnt/huggingface/models"
-FINE_TUNED_MODEL = "phi-4-mini-instruct-ft-medgemma-extracts"
+HF_REPO_NAME = "loknezmonzter/phi-4-mini-instruct-ft-medgemma-pmc-distilled"
+DATASET_PATH = "/mnt/huggingface/data/distilled/pmc_patients/pmc-patients-distilled-medgemma-22B"
+BASE_DIR = "models/"
+FINE_TUNED_MODEL = "phi-4-mini-instruct-ft-medgemma-pmc-distilled"
 MAX_SEQ_LENGTH = 4096
 NUM_TRAIN_EPOCHS = 3 
 BATCH_SIZE = 4
@@ -99,7 +113,9 @@ SYSTEM_PROMPT = (
 print("\n✅ system prompt ready")
 
 # Load and configure tokenizer padding
-tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME)
+tokenizer = AutoTokenizer.from_pretrained(
+    MODEL_NAME,
+)
 if tokenizer.pad_token is None:
     tokenizer.pad_token = tokenizer.eos_token
     tokenizer.pad_token_id = tokenizer.eos_token_id
@@ -123,7 +139,6 @@ model = AutoModelForCausalLM.from_pretrained(
     quantization_config=bnb_config,
     device_map="auto",
     attn_implementation="flash_attention_2",
-    dtype=torch.bfloat16
 )
 
 # Sync model config with tokenizer
@@ -152,7 +167,11 @@ lora_config = LoraConfig(
     ],
 )
 
-model = get_peft_model(model, lora_config)
+# TODO: Remove this later
+model = get_peft_model(
+    model, 
+    peft_config=lora_config
+)
 model.print_trainable_parameters()
 
 print("\n✅ LoRA adapters applied\n")
@@ -172,7 +191,7 @@ def format_example(example):
      # Build prompt string with chat template (includes assistant header)
     prompt_messages = [
         {"role": "system", "content": SYSTEM_PROMPT},
-        {"role": "user", "content": f"CONTEXT:\n{example['raw_medical_text']}"}
+        {"role": "user", "content": f"CONTEXT:\n{example['text']}"}
     ]
     prompt_text = tokenizer.apply_chat_template(
         prompt_messages,
@@ -231,7 +250,7 @@ def calculate_warmup_steps():
 
 # Training configuration for fine tuning
 training_args = SFTConfig(
-    output_dir=f"{BASE_DIR}/{FINE_TUNED_MODEL}/checkpoints",
+    output_dir=f"checkpoints/{FINE_TUNED_MODEL}",
 
     # --- Set step count for train --- #
     num_train_epochs=3,
@@ -239,8 +258,9 @@ training_args = SFTConfig(
 
     # --- Batch configuration --- #
     per_device_train_batch_size=BATCH_SIZE,
-    per_device_eval_batch_size=BATCH_SIZE,
+    per_device_eval_batch_size=1,
     gradient_accumulation_steps=GRAD_ACCUM_STEPS,
+    eval_accumulation_steps=4, 
     gradient_checkpointing=True,
     gradient_checkpointing_kwargs={"use_reentrant": False},
 
@@ -254,7 +274,6 @@ training_args = SFTConfig(
 
     # --- Precision control --- #
     bf16=True,
-    tf32=True,
 
     # --- Masking --- #
     completion_only_loss=True,
@@ -274,7 +293,8 @@ training_args = SFTConfig(
     logging_steps=5,
     report_to="wandb",
 
-    seed=SEED
+    seed=SEED,
+    loss_type="nll",
 )
 print("\n✅ SFTConfig ready for trainer\n")
 
@@ -284,8 +304,7 @@ trainer = SFTTrainer(
     args=training_args,
     train_dataset=train,
     eval_dataset=eval,
-    processing_class=tokenizer,
-    peft_config=lora_config
+    processing_class=tokenizer
 )
 print("\n✅ SFTTrainer ready\n")
 
@@ -321,10 +340,15 @@ else:
 
     # Get the best checkpoint from the json config
     best_checkpoint = trainer_state.get("best_model_checkpoint")
+    if best_checkpoint is None:
+        print("⚠️ No best checkpoint in trainer_state, falling back to final model")
+        best_checkpoint = training_args.output_dir  # uses last saved state
+    
     merged_dir = f"{BASE_DIR}/{FINE_TUNED_MODEL}/merged"
 
     # Load best checkpoint and merge LoRA into base model
     merged_model = AutoPeftModelForCausalLM.from_pretrained(
+        MODEL_NAME,
         best_checkpoint,      # loads best checkpoint automatically
         torch_dtype=torch.bfloat16,
         device_map="auto",
