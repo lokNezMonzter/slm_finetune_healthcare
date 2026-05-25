@@ -32,13 +32,7 @@ sudo docker run -d \
   --restart=always \
   --shm-size=32g \
   -v "$HOST_WS":/workspace \
-  -v /mnt/huggingface/models:/mnt/huggingface/models \
-  -v /mnt/huggingface/data/:/mnt/huggingface/data \
-  -v /mnt/models:/mnt/models \
-  -v /mnt/data:/mnt/data \
   -v /home/ubuntu/.ssh:/root/.ssh \
-  -e HF_HOME=/mnt/huggingface/models \
-  -e HF_DATASETS_CACHE=/mnt/huggingface/data \
   $IMAGE_NAME \
   sleep infinity
 
