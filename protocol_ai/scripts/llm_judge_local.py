@@ -26,7 +26,7 @@ client = AsyncOpenAI(api_key=API_KEY, base_url=BASE_URL, timeout=1800.0)
 # ==========================================
 # PATHS (Updated for ProtocolAI Pipeline)
 # ==========================================
-INPUT_FILE = "/workspace/data/protocol_ai/03_silver_aact.jsonl"
+INPUT_FILE = "/workspace/data/protocol_ai/03_silver_aact_sft.jsonl"
 OUTPUT_FILE = "/workspace/data/protocol_ai/04_silver_aact_evaluated.jsonl"
 ERROR_OUTPUT_FILE = "/workspace/data/protocol_ai/aact_judge_errors.jsonl"
 
@@ -68,7 +68,7 @@ async def evaluate_record(record_data, sem, pbar, success_file, error_file, file
         record_id = record_data.get("id", "UNKNOWN")
         try:
             # Safely grab the text (handling potential nested prompt structures)
-            source_text = record_data.get("text")
+            source_text = record_data.get("prompt")
             extracted_payload = record_data.get("data", {})
             
             USER_PROMPT = f"""
